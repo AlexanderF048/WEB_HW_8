@@ -23,7 +23,7 @@ from bson import ObjectId
 
 #find_it('name', 'Albert Einstein')
 
-query_name = Quotes.objects()
+query_name = Quotes.objects(tags='world')
 print(query_name)
 print('-----------------------------')
 for i in query_name:
@@ -31,7 +31,7 @@ for i in query_name:
 
 print('---------------------------------------------------------')
 
-query_name = Quotes.objects(author=ObjectId('63d46d07d4880a02b2dc547e'))
+query_name = Quotes.objects(author='Albert Einstein')
 print(query_name)
 print('-----------------------------')
 for i in query_name:
