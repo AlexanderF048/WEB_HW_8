@@ -1,4 +1,8 @@
+from bson import ObjectId
 import json
+from db_models import Authors, Quotes
+from db_connection import db # To allow script to connect to db - shouldn`t be used in main.py
+
 
 def get_authors_json(file_authors):
     with open(file_authors, "r") as fh:
@@ -14,8 +18,30 @@ def get_quotes_json(file_quotes):
 
 
 if __name__ == "__main__":
+    #file_authors = 'authors.json'
+    #file_quotes = 'quotes.json'
+#
+    #get_authors_json(file_authors)
+    #get_quotes_json(file_quotes)
+
     file_authors = 'authors.json'
     file_quotes = 'quotes.json'
 
-    get_authors_json(file_authors)
-    get_quotes_json(file_quotes)
+    authors = get_authors_json(file_authors)
+    quotes = get_quotes_json(file_quotes)
+
+    for author in authors:
+        Authors(fullname=author['fullname'], born_date=author['born_date'], born_location=author['born_location'],
+                description=author['description']).save()
+
+    for quote in quotes:
+        try:
+            query_single_autor = Authors.objects(fullname=quote['author']).first()
+            print(query_single_autor.to_mongo())
+            auth_id = ObjectId(query_single_autor._data['id'])
+            print(auth_id)  # Already OBJECT ID
+            Quotes(tags=quote['tags'], author=auth_id, quote=quote['quote']).save()
+        except:
+            print('DB UPLOAD FAIL!!!')
+            print('DB UPLOAD FAIL!!!')
+            print('DB UPLOAD FAIL!!!')

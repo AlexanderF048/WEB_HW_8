@@ -1,38 +1,58 @@
+import json
+import pprint
+import redis
+
+
 from db_models import Authors, Quotes
 from db_connection import db
-from bson import ObjectId
 
 
-#input_data = input("Please, insert your query::: ")
+# input_data = input("Please, insert your query::: ")
 
-#def find_it(command, data):
-#    match command:
-#        case 'name':
-#            query_name = Quotes.objects(name='Albert Einstein')
-#            for i in query_name:
-#                print(i.to_mongo())
+def find_it(command, data, red_inst=None):
+    match command:
+        case 'name':
+            try:
+                query_single_autor = Authors.objects(fullname=data).first()
+                # print(query_single_autor.to_mongo())
+                auth_id = query_single_autor._data['id']
+                # print(auth_id)
 
-#try:
-#    work_data = input_data.split(':')
-#    print(work_data[0])
-#
-#    find_it(work_data[0], work_data[1])
-#except:
-#    print('Try again...')
-#
+                value_for_redis = []
 
-#find_it('name', 'Albert Einstein')
+                query_name = Quotes.objects(author=auth_id)
+                for query_response in query_name:
+                    uno_response = query_response.to_json()
+                    duo_response = uno_response.encode('utf-8', errors='ignore').decode('utf-8')
 
-query_name = Quotes.objects(tags='world')
-print(query_name)
-print('-----------------------------')
-for i in query_name:
-    print(i.to_mongo())
+                    pprint.pprint(duo_response, indent=1, width=100, sort_dicts=True)
+                    value_for_redis.append(duo_response)
 
-print('---------------------------------------------------------')
 
-query_name = Quotes.objects(author='Albert Einstein')
-print(query_name)
-print('-----------------------------')
-for i in query_name:
-    print(i.to_mongo())
+                red_inst.set(command+data, 'REDIS OUTPUT:::::::'+value_for_redis, ex=180)
+
+            except:
+                print('No COMMAND/AUTOR !!!')
+        case 'tag':
+            try:
+                query_single_tag = Quotes.objects(tags=data)
+                for query_response in query_single_tag:
+                    print(query_response.to_mongo())
+            except:
+                print('No COMMAND/SINGLE TAG !!!')
+        case 'tags':
+            try:
+
+                query_single_tag = Quotes.objects(tags__in=data)
+                for query_response in query_single_tag:
+                    print(query_response.to_mongo())
+            except:
+                print('No COMMAND/SINGLE TAG !!!')
+        case 'exit':
+            exit()
+        case other:
+            print('No match found !!!')
+
+
+if __name__ == "__main__":
+    pass
